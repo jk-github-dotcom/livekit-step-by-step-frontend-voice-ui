@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Room, RoomEvent } from 'livekit-client';
 
-const LIVEKIT_URL = 'wss://aivoiceassistant-yf8o74l4.livekit.cloud'; // e.g. from Cloud or self-hosted
-const TOKEN_ENDPOINT = 'http://localhost:8000/token'; // change when deploying
+const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
+const TOKEN_ENDPOINT = import.meta.env.VITE_TOKEN_ENDPOINT;
 
 function App() {
   const [room, setRoom] = useState<Room | null>(null);
