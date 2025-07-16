@@ -23,13 +23,33 @@ function App() {
         await room.connect(LIVEKIT_URL, token);
         console.log('Connected to LiveKit');
         setRoom(room);
+
+        // 👇 Disconnect when tab is closed or refreshed
+        const handleBeforeUnload = () => {
+          room.disconnect();
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        // ✅ Clean up listener when component unmounts
+        return () => {
+          window.removeEventListener('beforeunload', handleBeforeUnload);
+          room.disconnect(); // also disconnect if React unmounts the component
+        };
       } catch (err) {
         console.error('Connection error:', err);
       }
     };
 
-    connectToRoom();
+    const cleanupPromise = connectToRoom();
+
+    // Return cleanup for React (in case connectToRoom resolves late)
+    return () => {
+      cleanupPromise.then((cleanup) => {
+        if (typeof cleanup === 'function') cleanup();
+      });
+    };
   }, []);
+
 
   return (
     <div>
