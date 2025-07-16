@@ -8,6 +8,8 @@ function App() {
   const [room, setRoom] = useState<Room | null>(null);
 
   useEffect(() => {
+    const room = new Room();
+
     const connectToRoom = async () => {
       try {
         const identity = 'user-' + Math.floor(Math.random() * 1000);
@@ -15,7 +17,6 @@ function App() {
         const res = await fetch(`${TOKEN_ENDPOINT}?identity=${identity}&room=${roomName}`);
         const { token } = await res.json();
 
-        const room = new Room();
         room.on(RoomEvent.ParticipantConnected, participant => {
           console.log(`${participant.identity} joined`);
         });
@@ -23,33 +24,24 @@ function App() {
         await room.connect(LIVEKIT_URL, token);
         console.log('Connected to LiveKit');
         setRoom(room);
-
-        // 👇 Disconnect when tab is closed or refreshed
-        const handleBeforeUnload = () => {
-          room.disconnect();
-        };
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        // ✅ Clean up listener when component unmounts
-        return () => {
-          window.removeEventListener('beforeunload', handleBeforeUnload);
-          room.disconnect(); // also disconnect if React unmounts the component
-        };
       } catch (err) {
         console.error('Connection error:', err);
       }
     };
 
-    const cleanupPromise = connectToRoom();
+    connectToRoom();
 
-    // Return cleanup for React (in case connectToRoom resolves late)
+    const handleBeforeUnload = () => {
+      room.disconnect();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     return () => {
-      cleanupPromise.then((cleanup) => {
-        if (typeof cleanup === 'function') cleanup();
-      });
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      room.disconnect();
     };
   }, []);
-
 
   return (
     <div>
