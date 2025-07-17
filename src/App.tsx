@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Room, RoomEvent } from 'livekit-client';
 import { RoomAudioRenderer, RoomContext } from '@livekit/components-react';
+import { LocalAudioTrack, createLocalAudioTrack } from 'livekit-client';
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 const TOKEN_ENDPOINT = import.meta.env.VITE_TOKEN_ENDPOINT;
@@ -25,6 +26,12 @@ function App() {
       console.log('Connected to LiveKit');
       setRoom(newRoom);
       setIsConnected(true);
+	  
+	  // ✅ Publish microphone audio
+      const micTrack: LocalAudioTrack = await createLocalAudioTrack();
+      await newRoom.localParticipant.publishTrack(micTrack);
+      console.log('Microphone track published');
+	  
     } catch (err) {
       console.error('Connection error:', err);
     }
