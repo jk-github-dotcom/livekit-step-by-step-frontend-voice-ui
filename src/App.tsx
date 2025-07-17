@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Room, RoomEvent } from 'livekit-client';
 import { RoomAudioRenderer, RoomContext } from '@livekit/components-react';
 import { LocalAudioTrack, createLocalAudioTrack } from 'livekit-client';
+import { Participant } from 'livekit-client';
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 const TOKEN_ENDPOINT = import.meta.env.VITE_TOKEN_ENDPOINT;
@@ -9,6 +10,7 @@ const TOKEN_ENDPOINT = import.meta.env.VITE_TOKEN_ENDPOINT;
 function App() {
   const [room, setRoom] = useState<Room | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [transcripts, setTranscripts] = useState<string[]>([]);
 
   const connectToRoom = async () => {
     try {
@@ -31,6 +33,15 @@ function App() {
       const micTrack: LocalAudioTrack = await createLocalAudioTrack();
       await newRoom.localParticipant.publishTrack(micTrack);
       console.log('Microphone track published');
+
+      // ✅ Transcription
+      newRoom.on(RoomEvent.DataReceived, (payload, participant) => {
+        const text = new TextDecoder().decode(payload);
+        console.log('Transcript received:', text);
+        setTranscripts((prev) => [...prev, `${participant.identity}: ${text}`]);
+      });
+	  
+//	  setTranscripts(prev => [...prev, "Test: This is a test message"]);
 	  
     } catch (err) {
       console.error('Connection error:', err);
@@ -102,6 +113,31 @@ function App() {
           <RoomAudioRenderer />
         </RoomContext.Provider>
       )}
+	  
+      {/* 🔽 Transcription Panel */}
+      {isConnected && (
+        <div
+          style={{
+            marginTop: '2rem',
+            border: '1px solid #ccc',
+            borderRadius: '8px',
+            padding: '1rem',
+            maxHeight: '200px',
+            overflowY: 'auto',
+            textAlign: 'left',
+            width: '60%',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+          }}
+        >
+          <h3 style={{ marginTop: 0 }}>Transcripts</h3>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {transcripts.map((msg, idx) => (
+              <li key={idx} style={{ marginBottom: '0.5rem' }}>{msg}</li>
+            ))}
+          </ul>
+        </div>
+      )}	  
     </div>
   );
 }
