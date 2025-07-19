@@ -32,7 +32,7 @@ this is a excellent [documentation](https://codeparrot.ai/blogs/a-beginners-guid
 
 # Install LiveKit client:
 ```
-npm install livekit-client
+npm install @livekit/components-react @livekit/components-styles livekit-client
 ```
 
 # git and github:
